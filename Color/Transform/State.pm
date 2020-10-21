@@ -23,34 +23,14 @@ sub reset {
     $self->{curr_color} = Color->new;
 }
 
-sub flush {
-    my $self = shift;
-    if (defined $self->{next_color}) {
-        my $nc = Color->new(
-            %{$self->{curr_color}},
-            %{$self->{next_color}},
-        );
-        $self->{curr_color} = $nc;
-        $self->{next_color} = undef;
-    }
-}
-
 sub next {
     my $self = shift;
     $self->{next_color} = shift;
-    #$self->snapshot
-    $self
-}
-
-sub snapshot {
-    my $self = shift;
-    return Color::Transform::State->new(%{$self});
-}
-
-sub update {
-    my $self = shift;
     my $ret = Color::Transform->new_from_colors($self->{curr_color}, $self->{next_color});
-    $self->flush;
+    if (defined $self->{next_color}) {
+        $self->{curr_color} = $self->{next_color};
+        $self->{next_color} = undef;
+    }
     return $ret;
 }
 

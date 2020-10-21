@@ -8,7 +8,11 @@ require Color::Transform;
 sub new {
     my $class = shift;
     bless {
+        bg => 0,
+        bold => 0,
+        fg => 7,
         mode => 'normal',
+        underline => 0,
         @_,
     }, $class
 }

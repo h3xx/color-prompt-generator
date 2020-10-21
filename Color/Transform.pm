@@ -4,10 +4,6 @@ use strict;
 use warnings;
 use overload '""' => 'to_string';
 
-use constant DEFAULT_FG => 7;
-use constant DEFAULT_BG => 0;
-use constant DEFAULT_MODE => 'normal';
-
 require Color;
 
 sub new {
@@ -27,41 +23,28 @@ sub new_from_colors {
 
     my $self = Color::Transform->new;
 
-    if (defined $to->{bold}) {
-        my $was_bold = (defined $from->{bold} ? $from->{bold} : 0);
-        if ($was_bold != $to->{bold}) {
-            $self->bold($to->{bold});
+    if ($from->{bold} != $to->{bold}) {
+        $self->bold($to->{bold});
 
-            # XXX if we unset bold, we have to set our color again because
-            # unsetting bold involves resetting the color
-            unless ($to->{bold}) {
-                my $nf = Color->new;
-                $nf->{mode} = $from->{mode} if defined $from->{mode};
-                $from = $nf;
-            }
+        # XXX if we unset bold, we have to set our color again because
+        # unsetting bold involves resetting the color
+        unless ($to->{bold}) {
+            my $nf = Color->new;
+            $nf->{mode} = $from->{mode} if defined $from->{mode};
+            $from = $nf;
         }
     }
 
-    if (defined $to->{fg}) {
-        my $was = (defined $from->{fg} ? $from->{fg} : DEFAULT_FG);
-        if ($was != $to->{fg}) {
-            $self->fg($to->{fg});
-        }
+    if ($from->{fg} != $to->{fg}) {
+        $self->fg($to->{fg});
     }
 
-    if (defined $to->{bg}) {
-        my $was = (defined $from->{bg} ? $from->{bg} : DEFAULT_BG);
-        if ($was != $to->{bg}) {
-            $self->bg($to->{bg});
-        }
+    if ($from->{bg} != $to->{bg}) {
+        $self->bg($to->{bg});
     }
 
-    if (defined $to->{mode} or defined $from->{mode}) {
-        my $was = (defined $from->{mode} ? $from->{mode} : DEFAULT_MODE);
-        my $is = (defined $to->{mode} ? $to->{mode} : DEFAULT_MODE);
-        if ($was ne $is) {
-            $self->mode($is);
-        }
+    if ($from->{mode} ne $to->{mode}) {
+        $self->mode($to->{mode});
     }
 
     $self

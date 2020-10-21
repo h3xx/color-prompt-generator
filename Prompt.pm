@@ -90,17 +90,17 @@ sub line1_frame {
 
     my $out = &{$blocker}(
         '\e)0', # \e)0 sets G1 to special characters,
-        $state->next($self->frame_color_box)->update, # (turn on box drawing)
+        $state->next($self->frame_color_box), # (turn on box drawing)
     );
 
     $out .= 'lqqu'
-        . &$blocker($state->next($self->frame_color)->update) # (turn off box drawing)
+        . &$blocker($state->next($self->frame_color)) # (turn off box drawing)
         . '\l ' # TTY number
-        . &$blocker($state->next($self->user_color)->update)
+        . &$blocker($state->next($self->user_color))
         . '\u'
-        . &$blocker($state->next($strudel_color)->update)
+        . &$blocker($state->next($strudel_color))
         . '@'
-        . &$blocker($state->next($self->host_color)->update)
+        . &$blocker($state->next($self->host_color))
         . '\h'
         ;
 
@@ -115,9 +115,9 @@ sub line1_mid {
     my $blocker = $self->blocker;
 
     my $out =
-        &$blocker($state->next($self->frame_color_box)->update) # (turn on box drawing)
+        &$blocker($state->next($self->frame_color_box)) # (turn on box drawing)
         . ' tq\\`'
-        . &$blocker($state->next($self->frame_color)->update) # (turn off box drawing)
+        . &$blocker($state->next($self->frame_color)) # (turn off box drawing)
         ;
 
     $out
@@ -134,7 +134,7 @@ sub err {
     );
 
     my $out = '$(err=$?; [[ $err -eq 0 ]] || printf \' \[%s\][%d]\' \''
-        . $state->next($err_color)->update->escaped
+        . $state->next($err_color)->escaped
         . '\' $err)'
         ;
 
@@ -159,15 +159,15 @@ sub line2_frame {
     );
     $state->reset;
     my $out =
-        &$blocker('\n', $state->next($self->frame_color_box)->update->with_reset)
+        &$blocker('\n', $state->next($self->frame_color_box)->with_reset)
         . 'mq[ '
-        . &$blocker($state->next($pwd_color)->update)
+        . &$blocker($state->next($pwd_color))
         . '\w'
-        . &$blocker($state->next($self->frame_color)->update)
+        . &$blocker($state->next($self->frame_color))
         . ' ]= '
-        . &$blocker($state->next($dollar_color)->update)
+        . &$blocker($state->next($dollar_color))
         . '\$'
-        . &$blocker($state->next(Color->new)->update->with_reset)
+        . &$blocker($state->next(Color->new)->with_reset)
         . ' '
 }
 
@@ -179,12 +179,6 @@ sub to_string {
 
     my $state = Color::Transform::State->new;
 
-#    sprintf "__git_ps1 '%s'\n'%s'\"%s\"\n'\\n%s' ' %%s'",
-#        $self->line1_frame($state),
-#        $self->line1_mid($state),
-#        $self->err($state),
-#        $self->line2_frame($state)
-#        ;
     sprintf "__git_ps1 '%s' '%s'\"%s\"'%s' ' %%s'",
         $self->line1_frame($state),
         $self->line1_mid($state),
