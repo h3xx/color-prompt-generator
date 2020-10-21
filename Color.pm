@@ -3,8 +3,6 @@ package Color;
 use strict;
 use warnings;
 
-require Color::Transform;
-
 sub new {
     my $class = shift;
     bless {

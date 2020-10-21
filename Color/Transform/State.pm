@@ -9,11 +9,9 @@ sub new {
     my $class = shift;
 
     my $self = bless {
+        curr_color => Color->new,
         @_,
     }, $class;
-
-    $self->{curr_color} = Color->new
-        unless defined $self->{curr_color};
 
     $self
 }

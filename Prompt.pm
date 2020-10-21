@@ -69,8 +69,7 @@ sub blocker {
 }
 
 sub line1_frame {
-    my $self = shift;
-    my $state = shift;
+    my ($self, $state) = @_;
 
     my $strudel_color = Color->new(
         bg => 0,
@@ -79,12 +78,12 @@ sub line1_frame {
         underline => 0,
     );
 
-    my $out = &blocker(
-        '\e)0', # \e)0 sets G1 to special characters,
-        $state->next($self->frame_color_box), # (turn on box drawing)
-    );
-
-    $out .= 'lqqu'
+    return
+        &blocker(
+            '\e)0', # \e)0 sets G1 to special characters,
+            $state->next($self->frame_color_box), # (turn on box drawing)
+        )
+        . 'lqqu'
         . &blocker($state->next($self->frame_color)) # (turn off box drawing)
         . '\l ' # TTY number
         . &blocker($state->next($self->user_color))
@@ -93,28 +92,19 @@ sub line1_frame {
         . '@'
         . &blocker($state->next($self->host_color))
         . '\h'
-        ;
-
-    $out
-
 }
 
 sub line1_mid {
-    my $self = shift;
-    my $state = shift;
+    my ($self, $state) = @_;
 
-    my $out =
+    return
         &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
         . ' tq\\`'
         . &blocker($state->next($self->frame_color)) # (turn off box drawing)
-        ;
-
-    $out
 }
 
 sub err {
-    my $self = shift;
-    my $state = shift;
+    my ($self, $state) = @_;
 
     my $err_color = Color->new(
         fg => 222,
@@ -122,21 +112,18 @@ sub err {
         bold => 1,
     );
 
-    my $out = q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
+    return
+        q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
         . $state->next($err_color)->escaped
         . q~' $err)~
-        ;
-
-    $out
 }
 
 sub line2_frame {
-    my $self = shift;
-    my $state = shift;
+    my ($self, $state) = @_;
     my $pwd_color = Color->new;
     my $dollar_color = Color->new(bold => 1);
     $state->reset;
-    my $out =
+    return
         &blocker('\n', $state->next($self->frame_color_box)->with_reset)
         . 'mq[ '
         . &blocker($state->next($pwd_color))
@@ -152,12 +139,9 @@ sub line2_frame {
 sub to_string {
     my $self = shift;
 
-    # FIXME remove
-    $self->{demo} = 0;
-
     my $state = Color::Transform::State->new;
 
-    sprintf "__git_ps1 '%s' '%s'\"%s\"'%s' ' %%s'",
+    sprintf q~__git_ps1 '%s' '%s'"%s"'%s' ' %%s'~,
         $self->line1_frame($state),
         $self->line1_mid($state),
         $self->err($state),
