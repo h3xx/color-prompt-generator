@@ -136,17 +136,42 @@ sub line2_frame {
         . ' '
 }
 
-sub to_string {
+sub git_prompt {
     my $self = shift;
+    (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
+    sprintf q~PROMPT_COMMAND='%s'~, $p;
+}
 
+sub git_prompt_command {
+    my $self = shift;
     my $state = Color::Transform::State->new;
-
     sprintf q~__git_ps1 '%s' '%s'"%s"'%s' ' %%s'~,
         $self->line1_frame($state),
         $self->line1_mid($state),
         $self->err($state),
         $self->line2_frame($state)
+}
 
+sub non_git_prompt {
+    my $self = shift;
+    (my $p = $self->non_git_ps1) =~ s/'/'\\''/g;
+    sprintf q~PS1='%s'~, $p;
+}
+
+sub non_git_ps1 {
+    my $self = shift;
+    my $state = Color::Transform::State->new;
+    $self->line1_frame($state)
+        . $self->line1_mid($state)
+        . $self->err($state)
+        . $self->line2_frame($state)
+}
+
+sub to_string {
+    my $self = shift;
+    $self->git
+        ? $self->git_prompt
+        : $self->non_git_prompt
 }
 
 =head1 AUTHOR

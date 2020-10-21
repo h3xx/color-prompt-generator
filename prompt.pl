@@ -48,13 +48,12 @@ MAIN: {
     }
 
     my $prompt = Prompt->new(
+        git => $git,
         user_color => $colors[1],
         host_color => $colors[0],
     );
 
-    #print $prompt, "\n";
-    (my $p = $prompt) =~ s/'/'\\''/g;
-    print "PROMPT_COMMAND='$p'\n";
+    print $prompt, "\n";
     #print q~__git_ps1 '\[\e)0\e[1;30m\016\]lqqu\[\017\]\l \[\e[1;38;5;207m\]\u\[\e[0m\]@\[\e[0;38;5;141m\]\h'~;
     #print q~'\[\e[1;30m\016\] tq\`\[\017\]'"$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '\e[1;38;5;222;48;5;235m' $err)"~;
     #print q~'\n\[\e[0m\e[1;30m\016\]mq[ \[\e[0m\017\]\w\[\e[1;30m\] ]= \[\e[1;37m\]\$\[\e[0m\] ' ' %s' ; history -a~, "\n";
