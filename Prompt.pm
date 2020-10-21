@@ -60,20 +60,12 @@ sub frame_color_box {
 }
 
 sub blocker {
-    my $self = shift;
-    if ($self->{demo}) {
-        return sub {
-            join '', @_;
-        };
-    }
-    return sub {
-        foreach my $arg (@_) {
-            if (ref $arg eq 'Color::Transform') {
-                $arg->escaped;
-            }
+    foreach my $arg (@_) {
+        if (ref $arg eq 'Color::Transform') {
+            $arg->escaped;
         }
-        sprintf '\[%s\]', join '', @_
-    };
+    }
+    sprintf '\[%s\]', join '', @_;
 }
 
 sub line1_frame {
@@ -86,21 +78,20 @@ sub line1_frame {
         fg => 7,
         underline => 0,
     );
-    my $blocker = $self->blocker;
 
-    my $out = &{$blocker}(
+    my $out = &blocker(
         '\e)0', # \e)0 sets G1 to special characters,
         $state->next($self->frame_color_box), # (turn on box drawing)
     );
 
     $out .= 'lqqu'
-        . &$blocker($state->next($self->frame_color)) # (turn off box drawing)
+        . &blocker($state->next($self->frame_color)) # (turn off box drawing)
         . '\l ' # TTY number
-        . &$blocker($state->next($self->user_color))
+        . &blocker($state->next($self->user_color))
         . '\u'
-        . &$blocker($state->next($strudel_color))
+        . &blocker($state->next($strudel_color))
         . '@'
-        . &$blocker($state->next($self->host_color))
+        . &blocker($state->next($self->host_color))
         . '\h'
         ;
 
@@ -112,12 +103,10 @@ sub line1_mid {
     my $self = shift;
     my $state = shift;
 
-    my $blocker = $self->blocker;
-
     my $out =
-        &$blocker($state->next($self->frame_color_box)) # (turn on box drawing)
+        &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
         . ' tq\\`'
-        . &$blocker($state->next($self->frame_color)) # (turn off box drawing)
+        . &blocker($state->next($self->frame_color)) # (turn off box drawing)
         ;
 
     $out
@@ -133,9 +122,9 @@ sub err {
         bold => 1,
     );
 
-    my $out = '$(err=$?; [[ $err -eq 0 ]] || printf \' \[%s\][%d]\' \''
+    my $out = q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
         . $state->next($err_color)->escaped
-        . '\' $err)'
+        . q~' $err)~
         ;
 
     $out
@@ -144,30 +133,19 @@ sub err {
 sub line2_frame {
     my $self = shift;
     my $state = shift;
-    my $blocker = $self->blocker;
-    my $pwd_color = Color->new(
-        fg => 7,
-        bg => 0,
-        underline => 0,
-        bold => 0,
-    );
-    my $dollar_color = Color->new(
-        bg => 0,
-        bold => 1,
-        fg => 7,
-        underline => 0,
-    );
+    my $pwd_color = Color->new;
+    my $dollar_color = Color->new(bold => 1);
     $state->reset;
     my $out =
-        &$blocker('\n', $state->next($self->frame_color_box)->with_reset)
+        &blocker('\n', $state->next($self->frame_color_box)->with_reset)
         . 'mq[ '
-        . &$blocker($state->next($pwd_color))
+        . &blocker($state->next($pwd_color))
         . '\w'
-        . &$blocker($state->next($self->frame_color))
+        . &blocker($state->next($self->frame_color))
         . ' ]= '
-        . &$blocker($state->next($dollar_color))
+        . &blocker($state->next($dollar_color))
         . '\$'
-        . &$blocker($state->next(Color->new)->with_reset)
+        . &blocker($state->next(Color->new)->with_reset)
         . ' '
 }
 
