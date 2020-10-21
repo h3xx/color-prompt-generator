@@ -1,0 +1,172 @@
+package Color::Cube;
+# vi: et sts=4 sw=4 ts=4
+use strict;
+use warnings;
+use overload '""' => 'to_string';
+
+sub new {
+    my $class = shift;
+
+    my $self = bless {
+        format => 'number',
+        limit_to_colors => undef,
+        reverse_colors => {},
+        @_,
+    }, $class;
+
+    $self;
+}
+
+sub to_string {
+    my $self = shift;
+    my @out = (
+        $self->set_resources,
+        "System colors:\n",
+        $self->system_colors,
+        "\n\n",
+        "Color cube, 6x6x6:\n",
+        $self->color_cube,
+        "Grayscale ramp:\n",
+        $self->gray_ramp,
+    );
+    join '', @out
+}
+
+sub luminance {
+    my $self = shift;
+    my ($red, $green, $blue) = @_;
+    # source: https://en.wikipedia.org/wiki/Relative_luminance
+    0.2126 * $red + 0.7152 * $green + 0.0722 * $blue
+}
+
+sub fg {
+    my $self = shift;
+    my ($color, $red, $green, $blue) = @_;
+
+    if ($self->{reverse_colors}->{$color}) {
+        return '30;07'; # black, reversed
+    }
+    if (defined $red) {
+        return ($self->luminance($red, $green, $blue) < 3) ?
+            '37' : # white
+            '30'; # black
+    }
+    if ($color > 231) {
+        # in gray ramp
+        if ($color < 244) {
+            return '37'; # white
+        } else {
+            return '30'; # black
+        }
+    }
+    return '';
+}
+
+sub set_resources {
+    my $self = shift;
+    my @out;
+
+    # use the resources for colors 0-15 - usually more-or-less a
+    # reproduction of the standard ANSI colors, but possibly more
+    # pleasing shades
+
+    # colors 16-231 are a 6x6x6 color cube
+    foreach my $red (0 .. 5) {
+        foreach my $green (0 .. 5) {
+            foreach my $blue (0 .. 5) {
+                push @out, sprintf "\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b\\",
+                16 + ($red * 36) + ($green * 6) + $blue,
+                ($red ? ($red * 40 + 55) : 0),
+                ($green ? ($green * 40 + 55) : 0),
+                ($blue ? ($blue * 40 + 55) : 0);
+            }
+        }
+    }
+
+    # colors 232-255 are a grayscale ramp, intentionally leaving out
+    # black and white
+    foreach my $gray (0 .. 23) {
+        my $level = ($gray * 10) + 8;
+        push @out, sprintf "\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b\\",
+            232 + $gray, $level, $level, $level;
+    }
+    @out
+}
+
+sub text {
+    my $self = shift;
+    my ($alias, $color) = @_;
+    if ($self->{format} eq 'ansicolor') {
+        return $alias;
+    }
+    return $color;
+}
+
+sub brick {
+    my $self = shift;
+    my ($alias, $color, $red, $green, $blue) = @_;
+    if (defined $self->{limit_to_colors} and not defined $self->{limit_to_colors}->{$color}) {
+        return '';
+    }
+    my $fg = $self->fg($color, $red, $green, $blue);
+    sprintf "\x1b[%s;48;5;%dm%3s \x1b[0m", $fg, $color, $self->text($alias, $color);
+}
+
+sub system_colors {
+    my $self = shift;
+    my @out = (
+        (map { $self->brick("ansi$_", $_) } 0 .. 7),
+        "\n",
+        (map { $self->brick("ansi$_", $_) } 8 .. 15),
+    );
+    @out
+}
+
+sub color_cube {
+    my $self = shift;
+    my @out;
+    foreach my $green (0 .. 5) {
+        my @row;
+        foreach my $red (0 .. 5) {
+            my @group;
+            foreach my $blue (0 .. 5) {
+                my $color = 16 + ($red * 36) + ($green * 6) + $blue;
+                my $brick = $self->brick("rgb$red$green$blue", $color, $red, $green, $blue);
+                if ($brick) {
+                    push @group, $brick;
+                }
+            }
+            if (@group) {
+                push @row, @group, " ";
+            }
+        }
+        if (@row) {
+            push @out, @row, "\n";
+        }
+    }
+    @out
+}
+
+sub gray_ramp {
+    my $self = shift;
+    my @out;
+    push @out, map { $self->brick('grey' . ($_ - 232), $_) } 232 .. 255;
+
+    @out
+}
+
+=head1 AUTHOR
+
+Dan Church S<E<lt>h3xx@gmx.comE<gt>>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2020 Dan Church.
+
+License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
+This is free software: you are free to change and redistribute it. There is NO
+WARRANTY, to the extent permitted by law.
+
+=cut
+
+1;
