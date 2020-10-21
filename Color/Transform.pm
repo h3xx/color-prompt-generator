@@ -10,7 +10,6 @@ sub new {
     my $class = shift;
     bless {
         actions => [],
-        escaped => 0,
         @_,
     }, $class
 }

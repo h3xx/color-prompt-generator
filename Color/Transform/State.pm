@@ -8,12 +8,10 @@ require Color;
 sub new {
     my $class = shift;
 
-    my $self = bless {
+    bless {
         curr_color => Color->new,
         @_,
-    }, $class;
-
-    $self
+    }, $class
 }
 
 sub reset {

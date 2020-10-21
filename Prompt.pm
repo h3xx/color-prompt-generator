@@ -10,16 +10,13 @@ require Color::Transform::State;
 sub new {
     my $class = shift;
 
-    my $self = bless {
+    bless {
+        frame_color => Color->new(
+            bold => 1,
+            fg => 0,
+        ),
         @_,
-    }, $class;
-
-    $self->{frame_color} = Color->new(
-        bold => 1,
-        fg => 0,
-    ) unless defined $self->{frame_color};
-
-    $self
+    }, $class
 }
 
 sub host_color {
