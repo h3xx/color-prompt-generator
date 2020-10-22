@@ -28,8 +28,9 @@ sub new_from_colors {
         # XXX if we unset bold, we have to set our color again because
         # unsetting bold involves resetting the color
         unless ($to->{bold}) {
-            my $nf = Color->new;
-            $nf->{mode} = $from->{mode} if defined $from->{mode};
+            my $nf = Color->new(
+                mode => $from->{mode},
+            );
             $from = $nf;
         }
     }
@@ -83,16 +84,10 @@ sub bg {
 sub mode {
     my $self = shift;
     if ($_[0] eq 'G1') {
-        $self->{after} = {
-            unescaped => "\016",
-            escaped => '\016',
-        };
+        $self->{after} = [ "\016", '\016' ];
     } else {
         # Normal
-        $self->{after} = {
-            unescaped => "\017",
-            escaped => '\017',
-        };
+        $self->{after} = [ "\017", '\017' ];
     }
 }
 
@@ -117,11 +112,7 @@ sub to_string {
             (join ';', @{$self->{actions}}),
     }
     if (defined $self->{after}) {
-        $out .= (
-            $self->{escaped}
-                ? $self->{after}->{escaped}
-                : $self->{after}->{unescaped}
-        );
+        $out .= $self->{after}->[$self->{escaped}];
     }
     $out
 }
