@@ -121,7 +121,8 @@ sub line2_frame {
     my $dollar_color = Color->new(bold => 1);
     $state->reset;
     return
-        &blocker('\n', $state->next($self->frame_color_box)->with_reset)
+        '\n'
+        . &blocker($state->next($self->frame_color_box)->with_reset)
         . 'mq[ '
         . &blocker($state->next($pwd_color))
         . '\w'
