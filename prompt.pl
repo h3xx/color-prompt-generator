@@ -44,10 +44,12 @@ MAIN: {
     }
 
     my $prompt = Prompt->new(
+        utf8 => $utf8,
         git => $git,
         host_color => $host_color,
         user_color => $user_color,
     );
 
+    binmode(STDOUT, ":utf8");
     print $prompt, "\n";
 }

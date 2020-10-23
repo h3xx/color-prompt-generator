@@ -15,6 +15,10 @@ sub new {
             bold => 1,
             fg => 0,
         ),
+        tty_color => Color->new(
+            bold => 1,
+            fg => 0,
+        ),
         @_,
     }, $class
 }
@@ -51,6 +55,14 @@ sub frame_color {
     $self->{frame_color}
 }
 
+sub tty_color {
+    my $self = shift;
+    if (@_ > 0) {
+        $self->{tty_color} = $_[0];
+    }
+    $self->{tty_color}
+}
+
 sub frame_color_box {
     my $self = shift;
     Color->new(%{$self->frame_color}, mode => 'G1');
@@ -65,7 +77,23 @@ sub blocker {
     sprintf '\[%s\]', join '', @_;
 }
 
-sub line1_frame {
+sub line1_frame_left {
+    my ($self, $state) = @_;
+    if ($self->{utf8}) {
+        return
+            &blocker($state->next($self->frame_color))
+            . "\x{250c}\x{2500}\x{2500}\x{2524}"
+    } else {
+        return
+            &blocker(
+                '\e)0', # \e)0 sets G1 to special characters,
+                $state->next($self->frame_color_box), # (turn on box drawing)
+            )
+            . 'lqqu'
+    }
+}
+
+sub line1_left {
     my ($self, $state) = @_;
 
     my $strudel_color = Color->new(
@@ -76,12 +104,8 @@ sub line1_frame {
     );
 
     return
-        &blocker(
-            '\e)0', # \e)0 sets G1 to special characters,
-            $state->next($self->frame_color_box), # (turn on box drawing)
-        )
-        . 'lqqu'
-        . &blocker($state->next($self->frame_color)) # (turn off box drawing)
+        $self->line1_frame_left($state)
+        . &blocker($state->next($self->tty_color))
         . '\l ' # TTY number
         . &blocker($state->next($self->user_color))
         . '\u'
@@ -91,13 +115,19 @@ sub line1_frame {
         . '\h'
 }
 
-sub line1_mid {
+sub line1_right {
     my ($self, $state) = @_;
 
-    return
-        &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
-        . ' tq\\`'
-        . &blocker($state->next($self->frame_color)) # (turn off box drawing)
+    if ($self->{utf8}) {
+        return
+            &blocker($state->next($self->frame_color))
+            . " \x{251c}\x{2500}\x{25c6}"
+    } else {
+        return
+            &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
+            . ' tq\\`'
+            . &blocker($state->next($self->frame_color)) # (turn off box drawing)
+    }
 }
 
 sub err {
@@ -115,15 +145,29 @@ sub err {
         . q~' $err)~
 }
 
-sub line2_frame {
+sub line2_frame_left {
+    my ($self, $state) = @_;
+
+    if ($self->{utf8}) {
+        return
+            &blocker($state->next($self->frame_color)->with_reset)
+            . "\x{2514}\x{2500}["
+    } else {
+        return
+            &blocker($state->next($self->frame_color_box)->with_reset)
+            . 'mq['
+    }
+}
+
+sub line2 {
     my ($self, $state) = @_;
     my $pwd_color = Color->new;
     my $dollar_color = Color->new(bold => 1);
     $state->reset;
     return
         '\n'
-        . &blocker($state->next($self->frame_color_box)->with_reset)
-        . 'mq[ '
+        . $self->line2_frame_left($state)
+        . ' '
         . &blocker($state->next($pwd_color))
         . '\w'
         . &blocker($state->next($self->frame_color))
@@ -144,10 +188,10 @@ sub git_prompt_command {
     my $self = shift;
     my $state = Color::Transform::State->new;
     sprintf q~__git_ps1 '%s' '%s'"%s"'%s' ' %%s'~,
-        $self->line1_frame($state),
-        $self->line1_mid($state),
+        $self->line1_left($state),
+        $self->line1_right($state),
         $self->err($state),
-        $self->line2_frame($state)
+        $self->line2($state)
 }
 
 sub non_git_prompt {
@@ -159,10 +203,10 @@ sub non_git_prompt {
 sub non_git_ps1 {
     my $self = shift;
     my $state = Color::Transform::State->new;
-    $self->line1_frame($state)
-        . $self->line1_mid($state)
+    $self->line1_left($state)
+        . $self->line1_right($state)
         . $self->err($state)
-        . $self->line2_frame($state)
+        . $self->line2($state)
 }
 
 sub to_string {
