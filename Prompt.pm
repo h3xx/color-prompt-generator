@@ -74,7 +74,8 @@ sub blocker {
             $arg->escaped;
         }
     }
-    sprintf '\[%s\]', join '', @_;
+    my $str = join '', @_;
+    length $str ? "\\[$str\\]" : '';
 }
 
 sub line1_frame_left {
