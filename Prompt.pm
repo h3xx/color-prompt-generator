@@ -19,53 +19,24 @@ sub new {
             bold => 1,
             fg => 0,
         ),
+        err_color => Color->new(
+            fg => 222,
+            bg => 235,
+            bold => 1,
+        ),
+        strudel_color => Color->new(
+            bg => 0,
+            bold => 0,
+            fg => 7,
+            underline => 0,
+        ),
         @_,
     }, $class
 }
 
-sub host_color {
-    my $self = shift;
-    if (@_ > 0) {
-        $self->{host_color} = $_[0];
-    }
-    $self->{host_color}
-}
-
-sub user_color {
-    my $self = shift;
-    if (@_ > 0) {
-        $self->{user_color} = $_[0];
-    }
-    $self->{user_color}
-}
-
-sub git {
-    my $self = shift;
-    if (@_ > 0) {
-        $self->{git} = $_[0];
-    }
-    $self->{git}
-}
-
-sub frame_color {
-    my $self = shift;
-    if (@_ > 0) {
-        $self->{frame_color} = $_[0];
-    }
-    $self->{frame_color}
-}
-
-sub tty_color {
-    my $self = shift;
-    if (@_ > 0) {
-        $self->{tty_color} = $_[0];
-    }
-    $self->{tty_color}
-}
-
 sub frame_color_box {
     my $self = shift;
-    Color->new(%{$self->frame_color}, mode => 'G1');
+    Color->new(%{$self->{frame_color}}, mode => 'G1');
 }
 
 sub blocker {
@@ -81,38 +52,29 @@ sub blocker {
 sub line1_frame_left {
     my ($self, $state) = @_;
     if ($self->{utf8}) {
-        return
-            &blocker($state->next($self->frame_color))
-            . "\x{250c}\x{2500}\x{2500}\x{2524}"
+        &blocker($state->next($self->{frame_color}))
+        . "\x{250c}\x{2500}\x{2500}\x{2524}"
     } else {
-        return
-            &blocker(
-                '\e)0', # \e)0 sets G1 to special characters,
-                $state->next($self->frame_color_box), # (turn on box drawing)
-            )
-            . 'lqqu'
+        &blocker(
+            '\e)0', # \e)0 sets G1 to special characters,
+            $state->next($self->frame_color_box), # (turn on box drawing)
+        )
+        . 'lqqu'
     }
 }
 
 sub line1_left {
     my ($self, $state) = @_;
 
-    my $strudel_color = Color->new(
-        bg => 0,
-        bold => 0,
-        fg => 7,
-        underline => 0,
-    );
-
     return
         $self->line1_frame_left($state)
-        . &blocker($state->next($self->tty_color))
+        . &blocker($state->next($self->{tty_color}))
         . '\l ' # TTY number
-        . &blocker($state->next($self->user_color))
+        . &blocker($state->next($self->{user_color}))
         . '\u'
-        . &blocker($state->next($strudel_color))
+        . &blocker($state->next($self->{strudel_color}))
         . '@'
-        . &blocker($state->next($self->host_color))
+        . &blocker($state->next($self->{host_color}))
         . '\h'
 }
 
@@ -120,29 +82,20 @@ sub line1_right {
     my ($self, $state) = @_;
 
     if ($self->{utf8}) {
-        return
-            &blocker($state->next($self->frame_color))
-            . " \x{251c}\x{2500}\x{25c6}"
+        &blocker($state->next($self->{frame_color}))
+        . " \x{251c}\x{2500}\x{25c6}"
     } else {
-        return
-            &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
-            . ' tq\\`'
-            . &blocker($state->next($self->frame_color)) # (turn off box drawing)
+        &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
+        . ' tq\\`'
+        . &blocker($state->next($self->{frame_color})) # (turn off box drawing)
     }
 }
 
 sub err {
     my ($self, $state) = @_;
-
-    my $err_color = Color->new(
-        fg => 222,
-        bg => 235,
-        bold => 1,
-    );
-
     return
         q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
-        . $state->next($err_color)->escaped
+        . $state->next($self->{err_color})->escaped
         . q~' $err)~
 }
 
@@ -150,13 +103,11 @@ sub line2_frame_left {
     my ($self, $state) = @_;
 
     if ($self->{utf8}) {
-        return
-            &blocker($state->next($self->frame_color)->with_reset)
-            . "\x{2514}\x{2500}["
+        &blocker($state->next($self->{frame_color})->with_reset)
+        . "\x{2514}\x{2500}["
     } else {
-        return
-            &blocker($state->next($self->frame_color_box)->with_reset)
-            . 'mq['
+        &blocker($state->next($self->frame_color_box)->with_reset)
+        . 'mq['
     }
 }
 
@@ -171,7 +122,7 @@ sub line2 {
         . ' '
         . &blocker($state->next($pwd_color))
         . '\w'
-        . &blocker($state->next($self->frame_color))
+        . &blocker($state->next($self->{frame_color}))
         . ' ]= '
         . &blocker($state->next($dollar_color))
         . '\$'
@@ -212,7 +163,7 @@ sub non_git_ps1 {
 
 sub to_string {
     my $self = shift;
-    $self->git
+    $self->{git}
         ? $self->git_prompt
         : $self->non_git_prompt
 }
