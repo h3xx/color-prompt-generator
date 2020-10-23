@@ -35,6 +35,19 @@ sub new_from_colors {
         }
     }
 
+    if ($from->{underline} != $to->{underline}) {
+        $self->underline($to->{underline});
+        # XXX if we unset underline, we have to set our color again because
+        # unsetting underline involves resetting the color
+        unless ($to->{underline}) {
+            my $nf = Color->new(
+                mode => $from->{mode},
+            );
+            $from = $nf;
+        }
+    }
+
+
     if ($from->{fg} != $to->{fg}) {
         $self->fg($to->{fg});
     }
@@ -60,7 +73,21 @@ sub with_reset {
 
 sub bold {
     my $self = shift;
-    $self->_push($_[0] ? 1 : 0);
+    if ($_[0]) {
+        $self->_push(1);
+    } else {
+        $self->with_reset;
+    }
+}
+
+sub underline {
+    # TODO this is right in uxterm, but wrong in xterm. \e[4;37m works, though.
+    my $self = shift;
+    if ($_[0]) {
+        $self->_push(4);
+    } else {
+        $self->with_reset;
+    }
 }
 
 sub fg {
