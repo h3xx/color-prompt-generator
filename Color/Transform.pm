@@ -22,31 +22,27 @@ sub new_from_colors {
 
     my $self = Color::Transform->new;
 
-    if ($from->{bold} != $to->{bold}) {
-        $self->bold($to->{bold});
+    # XXX if we unset bold or underline, we have to set our color again because
+    # unsetting underline involves resetting the color
+    if (
+        $from->{bold} != $to->{bold}
+        && !$to->{bold}
+        || $from->{underline} != $to->{underline}
+        && !$to->{underline}
+    ) {
+        $self->with_reset;
+        $from = Color->new(
+            mode => $from->{mode},
+        );
+    }
 
-        # XXX if we unset bold, we have to set our color again because
-        # unsetting bold involves resetting the color
-        unless ($to->{bold}) {
-            my $nf = Color->new(
-                mode => $from->{mode},
-            );
-            $from = $nf;
-        }
+    if ($from->{bold} != $to->{bold}) {
+        $self->bold;
     }
 
     if ($from->{underline} != $to->{underline}) {
-        $self->underline($to->{underline});
-        # XXX if we unset underline, we have to set our color again because
-        # unsetting underline involves resetting the color
-        unless ($to->{underline}) {
-            my $nf = Color->new(
-                mode => $from->{mode},
-            );
-            $from = $nf;
-        }
+        $self->underline;
     }
-
 
     if ($from->{fg} != $to->{fg}) {
         $self->fg($to->{fg});
@@ -73,21 +69,13 @@ sub with_reset {
 
 sub bold {
     my $self = shift;
-    if ($_[0]) {
-        $self->_push(1);
-    } else {
-        $self->with_reset;
-    }
+    $self->_push(1);
 }
 
 sub underline {
     # TODO this is right in uxterm, but wrong in xterm. \e[4;37m works, though.
     my $self = shift;
-    if ($_[0]) {
-        $self->_push(4);
-    } else {
-        $self->with_reset;
-    }
+    $self->_push(4);
 }
 
 sub fg {
