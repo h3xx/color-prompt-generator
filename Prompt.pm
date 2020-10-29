@@ -10,28 +10,26 @@ require Color::Transform::State;
 sub new {
     my $class = shift;
 
-    bless {
-        frame_color => Color->new(
-            bold => 1,
-            fg => 0,
-        ),
-        tty_color => Color->new(
-            bold => 1,
-            fg => 0,
-        ),
-        err_color => Color->new(
-            fg => 222,
-            bg => 235,
-            bold => 1,
-        ),
-        strudel_color => Color->new(
-            bg => 0,
-            bold => 0,
-            fg => 7,
-            underline => 0,
-        ),
+    my $self = bless {
+        frame_color => '0:b',
+        tty_color => '0:b',
+        err_color => '222:-235:b',
+        strudel_color => '7:-0',
         @_,
-    }, $class
+    }, $class;
+    foreach my $key (qw/
+        host_color
+        user_color
+        frame_color
+        tty_color
+        err_color
+        strudel_color
+    /) {
+        $self->{$key} = Color->from_string($self->{$key})
+            unless ref $self->{$key};
+    }
+
+    $self
 }
 
 sub frame_color_box {

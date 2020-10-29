@@ -15,6 +15,29 @@ sub new {
     }, $class
 }
 
+sub from_string {
+    my ($class, $str) = @_;
+    my $self = Color->new;
+    my %mode_map = (
+        u => [ 'underline', 1 ],
+        b => [ 'bold', 1 ],
+        n => [ 'mode', 'normal' ],
+        g => [ 'mode', 'G1' ],
+    );
+    foreach my $arg (split /[:;]/, $str) {
+        if (defined $mode_map{$arg}) {
+            $self->{$mode_map{$arg}->[0]} = $mode_map{$arg}->[1];
+        } elsif ($arg =~ /^-?[0-9]+$/) {
+            if ($arg =~ /^-/) {
+                $self->{bg} = abs $arg;
+            } else {
+                $self->{fg} = $arg;
+            }
+        }
+    }
+    $self
+}
+
 =head1 AUTHOR
 
 Dan Church S<E<lt>h3xx@gmx.comE<gt>>
