@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 require Color;
+require Color::Transform;
 
 sub new {
     my $class = shift;
