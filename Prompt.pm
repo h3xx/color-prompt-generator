@@ -15,6 +15,10 @@ sub new {
         tty_color => '0:b',
         err_color => '222:-235:b',
         strudel_color => '7:-0',
+        features => {
+            err => 1,
+            tty => 1,
+        },
         @_,
     }, $class;
     foreach my $key (qw/
@@ -66,8 +70,12 @@ sub line1_left {
 
     return
         $self->line1_frame_left($state)
-        . &blocker($state->next($self->{tty_color}))
-        . '\l ' # TTY number
+        . (
+            $self->{features}->{tty}
+                # TTY number
+                ? &blocker($state->next($self->{tty_color})) . '\l '
+                : ' '
+        )
         . &blocker($state->next($self->{user_color}))
         . '\u'
         . &blocker($state->next($self->{strudel_color}))
@@ -137,10 +145,10 @@ sub git_prompt {
 sub git_prompt_command {
     my $self = shift;
     my $state = Color::Transform::State->new;
-    sprintf q~__git_ps1 '%s' '%s'"%s"'%s' ' %%s'~,
+    sprintf q~__git_ps1 '%s' '%s'%s'%s' ' %%s'~,
         $self->line1_left($state),
         $self->line1_right($state),
-        $self->err($state),
+        ($self->{features}->{err} ? '"' . $self->err($state) . '"' : ''),
         $self->line2($state)
 }
 
@@ -155,7 +163,7 @@ sub non_git_ps1 {
     my $state = Color::Transform::State->new;
     $self->line1_left($state)
         . $self->line1_right($state)
-        . $self->err($state)
+        . ($self->{features}->{err} ? $self->err($state) : '')
         . $self->line2($state)
 }
 
