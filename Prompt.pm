@@ -15,6 +15,8 @@ sub new {
         tty_color => '0:b',
         err_color => '222:-235:b',
         strudel_color => '7:-0',
+        pwd_color => '7:-0',
+        dollar_color => '7:-0:b',
         space_bg => 0,
         features => {
             err => 1,
@@ -29,6 +31,8 @@ sub new {
         tty_color
         err_color
         strudel_color
+        pwd_color
+        dollar_color
     /) {
         $self->{$key} = Color->from_string($self->{$key})
             unless ref $self->{$key};
@@ -129,8 +133,6 @@ sub line2_frame_left {
 
 sub line2 {
     my ($self, $state) = @_;
-    my $pwd_color = Color->new;
-    my $dollar_color = Color->new(bold => 1);
     $state->reset;
     return
         '\n'
@@ -138,7 +140,7 @@ sub line2 {
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($pwd_color))
+        . &blocker($state->next($self->{pwd_color}))
         . '\w'
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
@@ -148,7 +150,7 @@ sub line2 {
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($dollar_color))
+        . &blocker($state->next($self->{dollar_color}))
         . '\$'
         . &blocker($state->next(Color->new)->with_reset)
         . ' '
