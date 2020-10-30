@@ -15,6 +15,7 @@ sub new {
         tty_color => '0:b',
         err_color => '222:-235:b',
         strudel_color => '7:-0',
+        space_bg => 0,
         features => {
             err => 1,
             tty => 1,
@@ -73,9 +74,12 @@ sub line1_left {
         . (
             $self->{features}->{tty}
                 # TTY number
-                ? &blocker($state->next($self->{tty_color})) . '\l '
-                : ' '
+                ? &blocker($state->next($self->{tty_color})) . '\l'
+                : ''
         )
+        # Add a space, don't care what the foreground color is
+        . &blocker($state->next_nonprinting($self->{space_bg}))
+        . ' '
         . &blocker($state->next($self->{user_color}))
         . '\u'
         . &blocker($state->next($self->{strudel_color}))
@@ -88,11 +92,17 @@ sub line1_right {
     my ($self, $state) = @_;
 
     if ($self->{utf8}) {
-        &blocker($state->next($self->{frame_color}))
-        . " \x{251c}\x{2500}\x{25c6}"
+        # Add a space, don't care what the foreground color is
+        &blocker($state->next_nonprinting($self->{space_bg}))
+        . ' '
+        . &blocker($state->next($self->{frame_color}))
+        . "\x{251c}\x{2500}\x{25c6}"
     } else {
-        &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
-        . ' tq\\`'
+        # Add a space, don't care what the foreground color is
+        &blocker($state->next_nonprinting($self->{space_bg}))
+        . ' '
+        . &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
+        . 'tq\\`'
         . &blocker($state->next($self->{frame_color})) # (turn off box drawing)
     }
 }
@@ -125,11 +135,19 @@ sub line2 {
     return
         '\n'
         . $self->line2_frame_left($state)
+        # Add a space, don't care what the foreground color is
+        . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
         . &blocker($state->next($pwd_color))
         . '\w'
+        # Add a space, don't care what the foreground color is
+        . &blocker($state->next_nonprinting($self->{space_bg}))
+        . ' '
         . &blocker($state->next($self->{frame_color}))
-        . ' ]= '
+        . ']='
+        # Add a space, don't care what the foreground color is
+        . &blocker($state->next_nonprinting($self->{space_bg}))
+        . ' '
         . &blocker($state->next($dollar_color))
         . '\$'
         . &blocker($state->next(Color->new)->with_reset)

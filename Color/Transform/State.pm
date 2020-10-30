@@ -20,6 +20,15 @@ sub reset {
     $self->{curr_color} = Color->new;
 }
 
+sub next_nonprinting {
+    my $self = shift;
+    my $bg = shift;
+    $self->next(Color->new(%{$self->{curr_color}},
+        bg => $bg,
+        underline => 0,
+    ))
+}
+
 sub next {
     my $self = shift;
     $self->{next_color} = shift;
