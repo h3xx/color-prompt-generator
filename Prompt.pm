@@ -47,11 +47,6 @@ sub frame_color_box {
 }
 
 sub blocker {
-    foreach my $arg (@_) {
-        if (ref $arg eq 'Color::Transform') {
-            $arg->escaped;
-        }
-    }
     my $str = join '', @_;
     length $str ? "\\[$str\\]" : '';
 }
@@ -115,7 +110,7 @@ sub err {
     my ($self, $state) = @_;
     return
         q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
-        . $state->next($self->{err_color})->escaped
+        . $state->next($self->{err_color})
         . q~' $err)~
 }
 

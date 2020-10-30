@@ -21,8 +21,7 @@ sub reset {
 }
 
 sub next_nonprinting {
-    my $self = shift;
-    my $bg = shift;
+    my ($self, $bg) = @_;
     $self->next(Color->new(%{$self->{curr_color}},
         bg => $bg,
         underline => 0,
@@ -30,13 +29,9 @@ sub next_nonprinting {
 }
 
 sub next {
-    my $self = shift;
-    $self->{next_color} = shift;
-    my $ret = Color::Transform->new_from_colors($self->{curr_color}, $self->{next_color});
-    if (defined $self->{next_color}) {
-        $self->{curr_color} = $self->{next_color};
-        $self->{next_color} = undef;
-    }
+    my ($self, $next_color) = @_;
+    my $ret = Color::Transform->new_from_colors($self->{curr_color}, $next_color);
+    $self->{curr_color} = $next_color;
     return $ret;
 }
 

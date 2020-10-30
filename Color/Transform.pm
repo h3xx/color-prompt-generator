@@ -99,10 +99,10 @@ sub bg {
 sub mode {
     my $self = shift;
     if ($_[0] eq 'G1') {
-        $self->{after} = [ "\016", '\016' ];
+        $self->{after} = '\016';
     } else {
         # Normal
-        $self->{after} = [ "\017", '\017' ];
+        $self->{after} = '\017';
     }
 }
 
@@ -111,24 +111,14 @@ sub _push {
     push @{$self->{actions}}, @_;
 }
 
-sub escaped {
-    my $self = shift;
-    push @_, 1; # default turn on escaping
-    $self->{escaped} = shift;
-    $self
-}
-
 sub to_string {
     my $self = shift;
     my $out = '';
     if (@{$self->{actions}}) {
-        $out .= sprintf "%s[%sm",
-            ($self->{escaped} ? '\e' : "\e"),
+        $out .= sprintf '\e[%sm',
             (join ';', @{$self->{actions}}),
     }
-    if (defined $self->{after}) {
-        $out .= $self->{after}->[$self->{escaped}];
-    }
+    $out .= $self->{after} if defined $self->{after};
     $out
 }
 
