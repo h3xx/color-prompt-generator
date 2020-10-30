@@ -17,6 +17,7 @@ sub new {
         strudel_color => '7:-0',
         pwd_color => '7:-0',
         dollar_color => '7:-0:b',
+        git_color => '121:-235:b',
         space_bg => 0,
         features => {
             err => 1,
@@ -29,6 +30,7 @@ sub new {
         user_color
         frame_color
         tty_color
+        git_color
         err_color
         strudel_color
         pwd_color
@@ -151,12 +153,32 @@ sub line2 {
         . ' '
 }
 
-sub git_prompt {
+# Basic git-enabled prompt; Will show you the branch or tag, but that's about
+# it.
+sub git_basic_ps1 {
     my $self = shift;
-    (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
-    sprintf q~PROMPT_COMMAND='%s'~, $p;
+    my $state = Color::Transform::State->new;
+    $self->line1_left($state)
+        . '$(__git_ps1 \' '
+            . &blocker($state->next($self->{git_color}))
+            . '%s\')'
+        . $self->line1_right($state)
+        . ($self->{features}->{err} ? $self->err($state) : '')
+        . $self->line2($state)
 }
 
+sub git_prompt {
+    my $self = shift;
+    if ($self->{basic_git}) {
+        (my $p = $self->git_basic_ps1) =~ s/'/'\\''/g;
+        sprintf q~PS1='%s'~, $p;
+    } else {
+        (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
+        sprintf q~PROMPT_COMMAND='%s'~, $p;
+    }
+}
+
+# Fancy git prompt; Shows branch, tag, special status, all in different colors
 sub git_prompt_command {
     my $self = shift;
     my $state = Color::Transform::State->new;
