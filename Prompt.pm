@@ -195,7 +195,9 @@ sub git_basic_ps1 {
     my $self = shift;
     my $state = Color::Transform::State->new;
     $self->line1_left($state)
-        . '$(__git_ps1 \' '
+        . '$(__git_ps1 \''
+            . &blocker($state->next_nonprinting($self->{space_bg}))
+            . ' '
             . &blocker($state->next($self->{git_color}))
             . '%s\')'
         . $self->line1_right($state)
@@ -218,11 +220,17 @@ sub git_prompt {
 sub git_prompt_command {
     my $self = shift;
     my $state = Color::Transform::State->new;
-    sprintf q~__git_ps1 '%s' '%s'%s'%s' ' %%s'~,
-        $self->line1_left($state),
+    my $l1left = $self->line1_left($state);
+    # The space before the git section is based on the last color state of the
+    # line1_left. In order to color the space properly, we need to calculate it
+    # just after.
+    my $space_before_git_prompt = &blocker($state->next_nonprinting($self->{space_bg})) . ' ';
+    sprintf q~__git_ps1 '%s' '%s'%s'%s' '%s%%s'~,
+        $l1left,
         $self->line1_right($state),
         ($self->{features}->{err} ? '"' . $self->err($state) . '"' : ''),
-        $self->line2($state)
+        $self->line2($state),
+        $space_before_git_prompt
 }
 
 sub non_git_prompt {
