@@ -16,43 +16,42 @@ sub new {
         tty => 1,
         git => 1,
     );
+    my %default_colors = (
+        dollar => '7:-0:b',
+        err => '222:-235:b',
+        frame => '0:b',
+        git_bad => '222:-235:b',
+        git_default => '121:-235:b',
+        git_flags => '81:-233:b',
+        git_ok => '121:-235:b',
+        pwd => '7:-0',
+        strudel => '7:-0',
+        tty => '0:b',
+    );
     my $self = bless {
-        frame_color => '0:b',
-        tty_color => '0:b',
-        err_color => '222:-235:b',
-        strudel_color => '7:-0',
-        pwd_color => '7:-0',
-        dollar_color => '7:-0:b',
-        git_color => '121:-235:b',
         space_bg => 0,
         @_,
     }, $class;
-    foreach my $key (qw/
-        host_color
-        user_color
-        frame_color
-        tty_color
-        git_color
-        err_color
-        strudel_color
-        pwd_color
-        dollar_color
-    /) {
-        $self->{$key} = Color->from_string($self->{$key})
-            unless ref $self->{$key};
-    }
-    # Merge features
+    # Merge options
     $self->{features} = {
         %default_features,
         (defined $self->{features} ? %{$self->{features}} : ()),
     };
+    $self->{colors} = {
+        %default_colors,
+        (defined $self->{colors} ? %{$self->{colors}} : ()),
+    };
+    foreach my $key (keys %{$self->{colors}}) {
+        $self->{colors}->{$key} = Color->from_string($self->{colors}->{$key})
+            unless ref $self->{colors}->{$key};
+    }
 
     $self
 }
 
 sub frame_color_box {
     my $self = shift;
-    Color->new(%{$self->{frame_color}}, mode => 'G1');
+    Color->new(%{$self->{colors}->{frame}}, mode => 'G1');
 }
 
 sub blocker {
@@ -63,7 +62,7 @@ sub blocker {
 sub line1_frame_left {
     my ($self, $state) = @_;
     if ($self->{utf8}) {
-        &blocker($state->next($self->{frame_color}))
+        &blocker($state->next($self->{colors}->{frame}))
         . "\x{250c}\x{2500}\x{2500}\x{2524}"
     } else {
         &blocker(
@@ -82,17 +81,17 @@ sub line1_left {
         . (
             $self->{features}->{tty}
                 # TTY number
-                ? &blocker($state->next($self->{tty_color})) . '\l'
+                ? &blocker($state->next($self->{colors}->{tty})) . '\l'
                 : ''
         )
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($self->{user_color}))
+        . &blocker($state->next($self->{colors}->{user}))
         . '\u'
-        . &blocker($state->next($self->{strudel_color}))
+        . &blocker($state->next($self->{colors}->{strudel}))
         . '@'
-        . &blocker($state->next($self->{host_color}))
+        . &blocker($state->next($self->{colors}->{host}))
         . '\h'
 }
 
@@ -103,7 +102,7 @@ sub line1_right {
         # Add a space, don't care what the foreground color is
         &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($self->{frame_color}))
+        . &blocker($state->next($self->{colors}->{frame}))
         . "\x{251c}\x{2500}\x{25c6}"
     } else {
         # Add a space, don't care what the foreground color is
@@ -111,7 +110,7 @@ sub line1_right {
         . ' '
         . &blocker($state->next($self->frame_color_box)) # (turn on box drawing)
         . 'tq\\`'
-        . &blocker($state->next($self->{frame_color})) # (turn off box drawing)
+        . &blocker($state->next($self->{colors}->{frame})) # (turn off box drawing)
     }
 }
 
@@ -119,7 +118,7 @@ sub err {
     my ($self, $state) = @_;
     return
         q~$(err=$?; [[ $err -eq 0 ]] || printf ' \[%s\][%d]' '~
-        . $state->next($self->{err_color})
+        . $state->next($self->{colors}->{err})
         . q~' $err)~
 }
 
@@ -127,7 +126,7 @@ sub line2_frame_left {
     my ($self, $state) = @_;
 
     if ($self->{utf8}) {
-        &blocker($state->next($self->{frame_color})->with_reset)
+        &blocker($state->next($self->{colors}->{frame})->with_reset)
         . "\x{2514}\x{2500}["
     } else {
         &blocker($state->next($self->frame_color_box)->with_reset)
@@ -144,17 +143,17 @@ sub line2 {
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($self->{pwd_color}))
+        . &blocker($state->next($self->{colors}->{pwd}))
         . '\w'
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($self->{frame_color}))
+        . &blocker($state->next($self->{colors}->{frame}))
         . ']='
         # Add a space, don't care what the foreground color is
         . &blocker($state->next_nonprinting($self->{space_bg}))
         . ' '
-        . &blocker($state->next($self->{dollar_color}))
+        . &blocker($state->next($self->{colors}->{dollar}))
         . '\$'
         . &blocker($state->next(Color->new)->with_reset)
         . ' '
@@ -162,10 +161,7 @@ sub line2 {
 
 sub git_color_override {
     my $self = shift;
-    # TODO export
-    my $red = Color->from_string('222:-235:b');
-    my $green = Color->from_string('121:-235:b');
-    my $lblue = Color->from_string('81:-233:b');
+    my ($red, $green, $lblue) = @{$self->{colors}}{qw/ git_bad git_ok git_flags /};
 
     my $space = Color->new(bg => $self->{space_bg});
     # Taken from git-prompt.sh and made more compact
@@ -198,7 +194,7 @@ sub git_basic_ps1 {
         . '$(__git_ps1 \''
             . &blocker($state->next_nonprinting($self->{space_bg}))
             . ' '
-            . &blocker($state->next($self->{git_color}))
+            . &blocker($state->next($self->{colors}->{git_default}))
             . '%s\')'
         . $self->line1_right($state)
         . ($self->{features}->{err} ? $self->err($state) : '')
