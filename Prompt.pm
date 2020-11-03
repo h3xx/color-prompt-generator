@@ -10,6 +10,11 @@ require Color::Transform::State;
 sub new {
     my $class = shift;
 
+    my %default_features = (
+        err => 1,
+        tty => 1,
+        git => 1,
+    );
     my $self = bless {
         frame_color => '0:b',
         tty_color => '0:b',
@@ -19,10 +24,6 @@ sub new {
         dollar_color => '7:-0:b',
         git_color => '121:-235:b',
         space_bg => 0,
-        features => {
-            err => 1,
-            tty => 1,
-        },
         @_,
     }, $class;
     foreach my $key (qw/
@@ -39,6 +40,11 @@ sub new {
         $self->{$key} = Color->from_string($self->{$key})
             unless ref $self->{$key};
     }
+    # Merge features
+    $self->{features} = {
+        %default_features,
+        (defined $self->{features} ? %{$self->{features}} : ()),
+    };
 
     $self
 }
@@ -206,7 +212,7 @@ sub non_git_ps1 {
 
 sub to_string {
     my $self = shift;
-    $self->{git}
+    $self->{features}->{git}
         ? $self->git_prompt
         : $self->non_git_prompt
 }
