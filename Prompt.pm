@@ -5,6 +5,7 @@ use warnings;
 use overload '""' => 'to_string';
 
 require Color;
+require Color::Transform;
 require Color::Transform::State;
 
 sub new {
@@ -159,6 +160,35 @@ sub line2 {
         . ' '
 }
 
+sub git_color_override {
+    my $self = shift;
+    # TODO export
+    my $red = Color->from_string('222:-235:b');
+    my $green = Color->from_string('121:-235:b');
+    my $lblue = Color->from_string('81:-233:b');
+
+    my $space = Color->new(bg => $self->{space_bg});
+    # Taken from git-prompt.sh and made more compact
+    q~__git_ps1_colorize_gitstring() {
+local bad_color='~
+    . &blocker(Color::Transform->new_from_colors($space, $red))
+    . q~' ok_color='~
+    . &blocker(Color::Transform->new_from_colors($space, $green))
+    . q~' flags_color='~
+    . &blocker(Color::Transform->new_from_colors($space, $lblue))
+    . q~' c_clear='\[\e[0m\]' branch_color
+[[ $detached = no ]] && branch_color=$ok_color || branch_color=$bad_color
+c=$branch_color$c
+z=$c_clear$z
+[[ $w = '*' ]] && w=$bad_color$w
+[[ -n $i ]] && i=$ok_color$i
+[[ -n $s ]] && s=$flags_color$s
+[[ -n $u ]] && u=$bad_color$u
+r=$c_clear$r
+}~;
+
+}
+
 # Basic git-enabled prompt; Will show you the branch or tag, but that's about
 # it.
 sub git_basic_ps1 {
@@ -180,7 +210,7 @@ sub git_prompt {
         sprintf q~PS1='%s'~, $p;
     } else {
         (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
-        sprintf q~PROMPT_COMMAND='%s'~, $p;
+        sprintf "%s\nPROMPT_COMMAND='%s'", $self->git_color_override, $p;
     }
 }
 
