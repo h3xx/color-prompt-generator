@@ -15,6 +15,7 @@ sub new {
         err => 1,
         tty => 1,
         git => 1,
+        git_loader => 1,
     );
     my %default_colors = (
         dollar => '7:-0:b',
@@ -159,6 +160,37 @@ sub line2 {
         . ' '
 }
 
+sub git_prompt_loader {
+    my $self = shift;
+    return '' unless $self->{features}->{git_loader};
+    my @candidates = (
+        '/usr/doc/git-*.*.*/contrib/completion/git-prompt.sh',
+        '/usr/share/git-core/contrib/completion/git-prompt.sh',
+        '/usr/lib/git-core/git-sh-prompt',
+    );
+    my $load;
+    foreach my $globstr (@candidates) {
+        if ($globstr =~ /\*|\?/) {
+            if (glob $globstr) {
+                return sprintf
+                    'test -n "$(for fn in %s; do '
+                    . 'if [[ -f $fn ]]; then '
+                    . 'echo "$fn"; '
+                    . 'break; '
+                    . 'fi; '
+                    . 'done'
+                    . ')" && { . "$_"; }' . "\n",
+                    $globstr
+            }
+        } else {
+            if (-f $globstr) {
+                return ". $globstr\n"
+            }
+        }
+    }
+    return '';
+}
+
 sub git_color_override {
     my $self = shift;
     my ($red, $green, $lblue) = @{$self->{colors}}{qw/ git_bad git_ok git_flags /};
@@ -205,10 +237,15 @@ sub git_prompt {
     my $self = shift;
     if ($self->{basic_git}) {
         (my $p = $self->git_basic_ps1) =~ s/'/'\\''/g;
-        sprintf q~PS1='%s'~, $p;
+        sprintf "%sPS1='%s'",
+            $self->git_prompt_loader,
+            $p;
     } else {
         (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
-        sprintf "%s\nPROMPT_COMMAND='%s'", $self->git_color_override, $p;
+        sprintf "%s%s\nPROMPT_COMMAND='%s'",
+            $self->git_prompt_loader,
+            $self->git_color_override,
+            $p;
     }
 }
 
