@@ -179,12 +179,12 @@ sub git_prompt_loader {
                     . 'break; '
                     . 'fi; '
                     . 'done'
-                    . ')" && { . "$_"; }' . "\n",
+                    . ')" && { . "$_"; }',
                     $globstr
             }
         } else {
             if (-f $globstr) {
-                return ". $globstr\n"
+                return ". $globstr"
             }
         }
     }
@@ -235,18 +235,20 @@ sub git_basic_ps1 {
 
 sub git_prompt {
     my $self = shift;
+    my @lines = (
+        $self->git_prompt_loader,
+    );
     if ($self->{basic_git}) {
         (my $p = $self->git_basic_ps1) =~ s/'/'\\''/g;
-        sprintf "%sPS1='%s'",
-            $self->git_prompt_loader,
-            $p;
+        push @lines, "PS1='$p'";
     } else {
         (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
-        sprintf "%s%s\nPROMPT_COMMAND='%s'",
-            $self->git_prompt_loader,
+        push @lines,
             $self->git_color_override,
-            $p;
+            'GIT_PS1_SHOWCOLORHINTS=1',
+            "PROMPT_COMMAND='$p'";
     }
+    join "\n", @lines;
 }
 
 # Fancy git prompt; Shows branch, tag, special status, all in different colors
