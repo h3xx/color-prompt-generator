@@ -28,6 +28,8 @@ sub new {
         pwd => '7:-0',
         strudel => '7:-0',
         tty => '0:b',
+        host => '2',
+        user => '2:b',
     );
     my $self = bless {
         space_bg => 0,
