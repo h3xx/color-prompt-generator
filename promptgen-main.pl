@@ -85,11 +85,11 @@ MAIN: {
     my $prompt = Prompt->new(
         utf8 => $utf8,
         colors => {
-            defined $host_color ? (host => $host_color) : (),
-            defined $user_color ? (user => $user_color) : (),
-            defined $frame_color ? (frame => $frame_color) : (),
-            defined $strudel_color ? (strudel => $strudel_color) : (),
-            defined $err_color ? (err => $err_color) : (),
+            host => $host_color,
+            user => $user_color,
+            frame => $frame_color,
+            strudel => $strudel_color,
+            err => $err_color,
         },
         features => {
             git => $git,

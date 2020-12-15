@@ -32,6 +32,7 @@ sub new {
         user => '2:b',
     );
     my $self = bless {
+        colors => {},
         space_bg => 0,
         @_,
     }, $class;
@@ -40,9 +41,11 @@ sub new {
         %default_features,
         (defined $self->{features} ? %{$self->{features}} : ()),
     };
+    # Eliminate undef colors, apply default colors
+    delete @{$self->{colors}}{ grep { not defined $self->{colors}->{$_} } keys %{$self->{colors}} };
     $self->{colors} = {
         %default_colors,
-        (defined $self->{colors} ? %{$self->{colors}} : ()),
+        %{$self->{colors}},
     };
     foreach my $key (keys %{$self->{colors}}) {
         $self->{colors}->{$key} = Color->from_string($self->{colors}->{$key})
