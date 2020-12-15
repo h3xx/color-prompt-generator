@@ -224,8 +224,7 @@ r=$c_clear$r
 # Basic git-enabled prompt; Will show you the branch or tag, but that's about
 # it.
 sub git_basic_ps1 {
-    my $self = shift;
-    my $state = Color::Transform::State->new;
+    my ($self, $state) = @_;
     $self->line1_left($state)
         . '$(__git_ps1 \''
             . &blocker($state->next_nonprinting($self->{space_bg}))
@@ -242,11 +241,12 @@ sub git_prompt {
     my @lines = (
         $self->git_prompt_loader,
     );
+    my $state = Color::Transform::State->new;
     if ($self->{basic_git}) {
-        (my $p = $self->git_basic_ps1) =~ s/'/'\\''/g;
+        (my $p = $self->git_basic_ps1($state)) =~ s/'/'\\''/g;
         push @lines, "PS1='$p'";
     } else {
-        (my $p = $self->git_prompt_command) =~ s/'/'\\''/g;
+        (my $p = $self->git_prompt_command($state)) =~ s/'/'\\''/g;
         push @lines,
             $self->git_color_override,
             'GIT_PS1_SHOWCOLORHINTS=1',
@@ -257,8 +257,7 @@ sub git_prompt {
 
 # Fancy git prompt; Shows branch, tag, special status, all in different colors
 sub git_prompt_command {
-    my $self = shift;
-    my $state = Color::Transform::State->new;
+    my ($self, $state) = @_;
     my $l1left = $self->line1_left($state);
     # The space before the git section is based on the last color state of the
     # line1_left. In order to color the space properly, we need to calculate it
@@ -274,13 +273,13 @@ sub git_prompt_command {
 
 sub non_git_prompt {
     my $self = shift;
-    (my $p = $self->non_git_ps1) =~ s/'/'\\''/g;
+    my $state = Color::Transform::State->new;
+    (my $p = $self->non_git_ps1($state)) =~ s/'/'\\''/g;
     sprintf q~PS1='%s'~, $p;
 }
 
 sub non_git_ps1 {
-    my $self = shift;
-    my $state = Color::Transform::State->new;
+    my ($self, $state) = @_;
     $self->line1_left($state)
         . $self->line1_right($state)
         . ($self->{features}->{err} ? $self->err($state) : '')
