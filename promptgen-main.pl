@@ -11,6 +11,8 @@ use lib &dirname(&realpath($0)); # :squash-ignore-line:
 
 require Prompt;
 
+our $VERSION = '1.0.0';
+
 sub HELP_MESSAGE {
     my $fh = shift;
     print $fh <<EOF
