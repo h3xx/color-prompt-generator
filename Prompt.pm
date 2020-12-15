@@ -167,13 +167,12 @@ sub line2 {
 
 sub git_prompt_loader {
     my $self = shift;
-    return '' unless $self->{features}->{git_loader};
+    return undef unless $self->{features}->{git_loader};
     my @candidates = (
         '/usr/doc/git-*.*.*/contrib/completion/git-prompt.sh',
         '/usr/share/git-core/contrib/completion/git-prompt.sh',
         '/usr/lib/git-core/git-sh-prompt',
     );
-    my $load;
     foreach my $globstr (@candidates) {
         if ($globstr =~ /\*|\?/) {
             if (glob $globstr) {
@@ -193,7 +192,7 @@ sub git_prompt_loader {
             }
         }
     }
-    return '';
+    return undef;
 }
 
 sub git_color_override {
@@ -253,7 +252,7 @@ sub git_prompt {
             'GIT_PS1_SHOWCOLORHINTS=1',
             "PROMPT_COMMAND='$p'";
     }
-    join "\n", @lines;
+    join "\n", grep { defined $_ } @lines;
 }
 
 # Fancy git prompt; Shows branch, tag, special status, all in different colors
