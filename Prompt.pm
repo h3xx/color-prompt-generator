@@ -177,13 +177,13 @@ sub git_prompt_loader {
         if ($globstr =~ /\*|\?/) {
             if (glob $globstr) {
                 return sprintf
-                    'test -n "$(for fn in %s; do '
+                    'test -z "$(for fn in %s; do '
                     . 'if [[ -f $fn ]]; then '
                     . 'echo "$fn"; '
                     . 'break; '
                     . 'fi; '
                     . 'done'
-                    . ')" && { . "$_"; }',
+                    . ')" || { . "$_"; }',
                     $globstr
             }
         } else {
@@ -212,10 +212,10 @@ local bad_color='~
 [[ $detached = no ]] && branch_color=$ok_color || branch_color=$bad_color
 c=$branch_color$c
 z=$c_clear$z
-[[ $w = '*' ]] && w=$bad_color$w
-[[ -n $i ]] && i=$ok_color$i
-[[ -n $s ]] && s=$flags_color$s
-[[ -n $u ]] && u=$bad_color$u
+[[ $w != '*' ]] || w=$bad_color$w
+[[ -z $i ]] || i=$ok_color$i
+[[ -z $s ]] || s=$flags_color$s
+[[ -z $u ]] || u=$bad_color$u
 r=$c_clear$r
 }~;
 
