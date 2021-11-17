@@ -4,10 +4,12 @@ use strict;
 use warnings;
 use Getopt::Long qw/ GetOptions /;
 
-# (this prepends to the load path) :squash-ignore-line:
-use File::Basename  qw/ dirname /; # :squash-ignore-line:
-use Cwd             qw/ realpath /; # :squash-ignore-line:
-use lib &dirname(&realpath($0)); # :squash-ignore-line:
+# :squash-ignore-start:
+# (this prepends to the load path)
+use File::Basename  qw/ dirname /;
+use Cwd             qw/ realpath /;
+use lib &dirname(&realpath($0));
+# :squash-ignore-end:
 
 require Prompt;
 
