@@ -82,7 +82,7 @@ use lib &dirname(&realpath($0));
 
 require Prompt;
 
-our $VERSION = '1.0.0';
+our $VERSION = '1.0.1';
 
 MAIN: {
     my (
