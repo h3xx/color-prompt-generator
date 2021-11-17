@@ -44,7 +44,7 @@ Dan Church S<E<lt>h3xx@gmx.comE<gt>>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2020 Dan Church.
+Copyright (C) 2020-2021 Dan Church.
 
 License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it. There is NO

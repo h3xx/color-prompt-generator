@@ -35,7 +35,7 @@ Colors are specified using a colon-separated list:
   "39:-235:b:u" means color 39 (blue-teal) on color 235 (slate),
       +bold +underline
 
-Copyright (C) 2020 Dan Church.
+Copyright (C) 2020-2021 Dan Church.
 License GPLv3+: GNU GPL version 3 or later (http://gnu.org/licenses/gpl.html).
 This is free software: you are free to change and redistribute it. There is NO
 WARRANTY, to the extent permitted by law.
