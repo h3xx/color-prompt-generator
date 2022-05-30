@@ -4,9 +4,11 @@ use strict;
 use warnings;
 use overload '""' => 'to_string';
 
+# :squash-ignore-start:
 require Color;
 require Color::Transform;
 require Color::Transform::State;
+# :squash-ignore-end:
 
 sub new {
     my $class = shift;

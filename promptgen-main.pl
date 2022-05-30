@@ -78,9 +78,9 @@ use Pod::Usage qw/ pod2usage /;
 use File::Basename  qw/ dirname /;
 use Cwd             qw/ realpath /;
 use lib &dirname(&realpath($0));
-# :squash-ignore-end:
 
 require Prompt;
+# :squash-ignore-end:
 
 our $VERSION = '1.0.1';
 

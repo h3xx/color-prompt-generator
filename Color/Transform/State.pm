@@ -3,8 +3,10 @@ package Color::Transform::State;
 use strict;
 use warnings;
 
+# :squash-ignore-start:
 require Color;
 require Color::Transform;
+# :squash-ignore-end:
 
 sub new {
     my $class = shift;
