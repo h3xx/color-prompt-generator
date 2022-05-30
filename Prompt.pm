@@ -8,45 +8,31 @@ use overload '""' => 'to_string';
 require Color;
 require Color::Transform;
 require Color::Transform::State;
+require Defaults;
 # :squash-ignore-end:
 
 sub new {
     my $class = shift;
 
-    my %default_features = (
-        err => 1,
-        tty => 1,
-        git => 1,
-        git_loader => 1,
-    );
-    my %default_colors = (
-        dollar => '7:-0:b',
-        err => '222:-235:b',
-        frame => '0:b',
-        git_bad => '222:-235:b',
-        git_default => '121:-235:b',
-        git_flags => '81:-233:b',
-        git_ok => '121:-235:b',
-        pwd => '7:-0',
-        strudel => '7:-0',
-        tty => '0:b',
-        host => '2',
-        user => '2:b',
-    );
+    my $defaults = Defaults->new;
     my $self = bless {
         colors => {},
+        features => {},
         space_bg => 0,
+        basic_git => $defaults->basic_git,
+        utf8 => $defaults->utf8,
         @_,
     }, $class;
     # Merge options
+    delete @{$self->{features}}{ grep { not defined $self->{features}->{$_} } keys %{$self->{features}} };
     $self->{features} = {
-        %default_features,
+        $defaults->features,
         (defined $self->{features} ? %{$self->{features}} : ()),
     };
     # Eliminate undef colors, apply default colors
     delete @{$self->{colors}}{ grep { not defined $self->{colors}->{$_} } keys %{$self->{colors}} };
     $self->{colors} = {
-        %default_colors,
+        $defaults->colors,
         %{$self->{colors}},
     };
     foreach my $key (keys %{$self->{colors}}) {

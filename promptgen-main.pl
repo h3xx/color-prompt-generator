@@ -126,15 +126,6 @@ MAIN: {
     $git = 0 if defined $no_git;
     $utf8 = 0 if defined $no_utf8;
 
-    # default: green / yellow
-    if ($ENV{USER} eq 'root') {
-        $host_color = '3' unless defined $host_color;
-        $user_color = '3:b' unless defined $user_color;
-    } else {
-        $host_color = '2' unless defined $host_color;
-        $user_color = '2:b' unless defined $user_color;
-    }
-
     my $prompt = Prompt->new(
         utf8 => $utf8,
         colors => {
