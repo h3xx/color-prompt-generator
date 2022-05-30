@@ -82,7 +82,7 @@ use lib &dirname(&realpath($0));
 require Prompt;
 # :squash-ignore-end:
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.0.2';
 
 MAIN: {
     my (
