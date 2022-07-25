@@ -11,10 +11,6 @@ sub new {
     $self
 }
 
-sub basic_git {
-    return 0;
-}
-
 sub utf8 {
     return 0;
 }

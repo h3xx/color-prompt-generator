@@ -19,7 +19,6 @@ sub new {
         colors => {},
         features => {},
         space_bg => 0,
-        basic_git => $defaults->basic_git,
         utf8 => $defaults->utf8,
         @_,
     }, $class;
@@ -230,7 +229,7 @@ sub git_prompt {
         $self->git_prompt_loader,
     );
     my $state = Color::Transform::State->new;
-    if ($self->{basic_git}) {
+    if ($self->{features}->{git} eq 'basic') {
         (my $p = $self->git_basic_ps1($state)) =~ s/'/'\\''/g;
         push @lines, "PS1='$p'";
     } else {

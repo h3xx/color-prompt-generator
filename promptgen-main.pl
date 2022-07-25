@@ -23,11 +23,11 @@ C<39:-235:b:u> means color 39 (blue-teal) on color 235 (slate), +bold +underline
 
 Generate a git prompt (default).
 
-=item B<--no-git>
+=item B<--git=no>, B<--no-git>
 
 Generate a non-git prompt.
 
-=item B<--basic-git>
+=item B<--git=basic>
 
 Generate a basic git prompt with only the branch name.
 
@@ -88,28 +88,33 @@ our $VERSION = '1.0.2';
 
 MAIN: {
     my (
-        $basic_git,
         $err_color,
         $frame_color,
         $git,
         $help,
         $host_color,
-        $no_git,
-        $no_utf8,
         $strudel_color,
         $user_color,
         $utf8,
     );
     # Defaults
-    ($git, $utf8, $basic_git) = (1, 0, 0);
+    ($git, $utf8) = (1, 0);
+
 
     &GetOptions(
         'utf8' => \$utf8,
-        'no-utf8' => \$no_utf8,
-        'git' => \$git,
+        'no-utf8' => sub { $utf8 = 0 },
+        'git:s' => sub {
+            my $v = $_[1];
+            $git = {
+                '' => 1,
+                no => 0,
+                basic => 'basic',
+            }->{$v};
+            die "Unknown value for --git: $v" unless defined $git;
+        },
         'help' => \$help,
-        'no-git' => \$no_git,
-        'basic-git' => \$basic_git,
+        'no-git' => sub { $git = 0 },
         'user-color=s' => \$user_color, 'u=s' => \$user_color,
         'host-color=s' => \$host_color, 'h=s' => \$host_color,
         'frame-color=s' => \$frame_color, 'f=s' => \$frame_color,
@@ -125,9 +130,6 @@ MAIN: {
         -exitval => 0,
     ) if $help;
 
-    $git = 0 if defined $no_git;
-    $utf8 = 0 if defined $no_utf8;
-
     my $prompt = Prompt->new(
         utf8 => $utf8,
         colors => {
@@ -140,7 +142,6 @@ MAIN: {
         features => {
             git => $git,
         },
-        basic_git => $basic_git,
     );
 
     binmode(STDOUT, ":utf8");
