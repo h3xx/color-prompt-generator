@@ -1,0 +1,153 @@
+#!/usr/bin/perl
+# vi: et sts=4 sw=4 ts=4
+use strict;
+use warnings;
+
+use Getopt::Long qw/ GetOptions /;
+Getopt::Long::Configure(qw/
+    no_getopt_compat
+    no_ignore_case
+/);
+use Pod::Usage qw/ pod2usage /;
+
+# :squash-ignore-start:
+# (this prepends to the load path)
+use File::Basename  qw/ dirname /;
+use Cwd             qw/ realpath /;
+use lib &dirname(&realpath($0)) . '/..';
+
+require Color;
+require Color::Transform::State;
+# :squash-ignore-end:
+
+=head1 NAME
+
+transition - Generate color transitions
+
+=head1 SYNOPSIS
+
+B<transition> [I<OPTION>]... COLOR...
+
+=head1 OPTIONS
+
+Colors are specified using a colon-separated list in the form of I<FG:BG:FLAG...>
+
+C<39:-235:b:u> means color 39 (blue-teal) on color 235 (slate), +bold +underline
+
+This script ALSO supports prepending the I<COLOR> with a C<+>, which expands to
+the previous color in the list.
+
+=over 4
+
+=item B<--start-color>=I<COLOR>
+
+Start with I<COLOR> as the base color. Defaults is '', which means the assumed
+color of the terminal after a reset (C<\e[0m>).
+
+=item B<--help>
+
+Display this help and exit.
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright (C) 2020-2022 Dan Church.
+License GPLv3: GNU GPL version 3.0 (L<https://www.gnu.org/licenses/gpl-3.0.html>)
+with Commons Clause 1.0 (L<https://commonsclause.com/>).
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+You may NOT use this software for commercial purposes.
+
+=cut
+
+MAIN: {
+    my (
+        $help,
+        $start_color,
+    );
+
+    &GetOptions(
+        'start-color=s' => \$start_color,
+        'help' => \$help,
+    ) || &pod2usage(
+        -exitval => 2,
+        -msg => "Try '$0 --help' for more information",
+    );
+
+    &pod2usage(
+        -verbose => 1,
+        -exitval => 0,
+    ) if $help;
+
+    # Print usage message if no arguments specified
+    &pod2usage(
+        -exitval => 1,
+        -sections => 'SYNOPSIS',
+        -verbose => 0,
+    ) unless @ARGV;
+
+    $start_color = '' unless defined $start_color;
+
+    my $state = Color::Transform::State->new(
+        curr_color => Color->from_string($start_color),
+    );
+
+    my $last_color_str = $start_color;
+    foreach my $color_str (@ARGV) {
+        my $this_color;
+        if ($color_str =~ /^\+/) {
+            $this_color = Color->from_string("$last_color_str:$'");
+        } else {
+            $this_color = Color->from_string($color_str);
+        }
+        &print_step($color_str, $this_color, $state);
+        $last_color_str = $color_str;
+    }
+}
+
+sub unescape {
+    my @proc;
+
+    my $convert_octal = sub {
+        return chr oct $1;
+    };
+    my $convert_hex = sub {
+        return chr hex $1;
+    };
+    my $re_hex_with_curlies = qr/\\x\{([0-9a-fA-F]*)[^}]*\}/;
+    my $re_hex_bare = qr/\\x([0-9a-fA-F]{0,2})/;
+    foreach my $esc (@_) {
+        my $new = $esc;
+        $new =~ s/\\e/\e/g;
+        $new =~ s/\\([0-9]+)/$convert_octal->()/gxse;
+
+        # Probably unused in this module, but good to have a reference
+        # implementation around
+        $new =~ s/$re_hex_with_curlies/$convert_hex->()/gxse;
+        $new =~ s/$re_hex_bare/$convert_hex->()/gxse;
+        push @proc, $new;
+    }
+
+    wantarray ? @proc : shift @proc;
+}
+
+sub print_step {
+    my ($color_str, $this_color, $state) = @_;
+    my $colorize = (-t STDOUT);
+
+    my $escape = $state->next($this_color);
+
+    my $colorizer = '';
+    if ($colorize) {
+        $colorizer = &unescape($escape);
+    }
+
+    print
+        $escape,
+        $colorizer,
+        " --> ",
+        $color_str,
+        "\n"
+        ;
+}
