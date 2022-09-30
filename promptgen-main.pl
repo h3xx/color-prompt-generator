@@ -87,7 +87,7 @@ use lib $FindBin::RealBin;
 require Prompt;
 # :squash-ignore-end:
 
-our $VERSION = '1.0.2';
+our $VERSION = '1.0.3';
 
 MAIN: {
     my (
