@@ -73,6 +73,10 @@ You may NOT use this software for commercial purposes.
 =cut
 
 use Getopt::Long qw/ GetOptions /;
+Getopt::Long::Configure(qw/
+    no_getopt_compat
+    no_ignore_case
+/);
 use Pod::Usage qw/ pod2usage /;
 
 # :squash-ignore-start:
