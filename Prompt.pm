@@ -118,6 +118,8 @@ sub err {
 sub line2_frame_left {
     my ($self, $state) = @_;
 
+    # Note: The ->with_reset call here is because the 'err' feature may set a
+    # color at the end of the last line.
     if ($self->{utf8}) {
         &blocker($state->next($self->{colors}->{frame})->with_reset)
         . "\x{2514}\x{2500}["
@@ -148,7 +150,7 @@ sub line2 {
         . ' '
         . &blocker($state->next($self->{colors}->{dollar}))
         . '\$'
-        . &blocker($state->next(Color->new)->with_reset)
+        . &blocker($state->next(Color->new))
         . ' '
 }
 
